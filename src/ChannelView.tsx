@@ -80,9 +80,10 @@ export function ChannelView({ channelUrl }: ChannelViewProps) {
   );
 
   const postMessages = useCallback(
-    (count: number) => {
+    async (count: number) => {
       for (let i = 0; i < count; i++) {
         postMessage(`Message ${i + 1}`);
+        await new Promise((resolve) => setTimeout(resolve, 1));
       }
     },
     [messageText, postMessage]
@@ -145,6 +146,7 @@ export function ChannelView({ channelUrl }: ChannelViewProps) {
         <div>
           <button onClick={() => postMessages(10)}>Post 10</button>
           <button onClick={() => postMessages(100)}>Post 100</button>
+          <button onClick={() => postMessages(300)}>Post 300</button>
           <button onClick={() => postMessages(1000)}>Post 1000</button>
         </div>
       </div>
