@@ -4,7 +4,7 @@ import type {
   DocumentId,
   Repo,
 } from "@automerge/automerge-repo";
-import { MessageDoc, PageDoc } from ".";
+import { GrowRange, MessageDoc, PageDoc } from ".";
 import { Event, type ReadOnlyEvent } from "@dxos/async";
 
 export class TreeModel {
@@ -47,8 +47,13 @@ export class TreeModel {
     console.log("loadMessages", { timestamp, count });
     const root = await this.#loadRootPage();
     const messages = Object.entries(root.doc().nodes ?? {})
-      .filter(([_, node]) => node.type === "message" && node.to <= timestamp)
-      .sort((a, b) => b[1].to - a[1].to)
+      .filter(
+        ([_, node]) =>
+          node.type === "message" && GrowRange.getMax(node.range) <= timestamp
+      )
+      .sort(
+        (a, b) => GrowRange.getMax(b[1].range) - GrowRange.getMax(a[1].range)
+      )
       .slice(0, count);
 
     await Promise.all(
