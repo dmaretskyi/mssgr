@@ -4,10 +4,15 @@ import type {
   DocumentId,
   Repo,
 } from "@automerge/automerge-repo";
+import { next as Automerge } from "@automerge/automerge";
 import { GrowRange, MessageDoc, PageDoc, type PageEntry } from ".";
-import { Event, type ReadOnlyEvent } from "@dxos/async";
+import { Event, Mutex, type ReadOnlyEvent } from "@dxos/async";
+
+const PAGE_MESSAGE_THRESHOLD = 50;
 
 export class TreeModel {
+  #insertMutex = new Mutex();
+
   #repo: Repo;
   #rootUrl: AutomergeUrl;
 
@@ -49,7 +54,14 @@ export class TreeModel {
     const entries: PageEntry[] = [];
 
     const loadPage = async (url: AutomergeUrl) => {
+      console.log("loadPage", url);
       const page = await this.#load<PageDoc>(url);
+      console.log(
+        "page",
+        page.url,
+        PageDoc.getEntryCount(page.doc()),
+        "entries"
+      );
       await Promise.all(
         PageDoc.getEntries(page.doc()).map(async ([url, node]) => {
           if (GrowRange.getMax(node.range) >= timestamp) {
@@ -101,10 +113,7 @@ export class TreeModel {
     this.#messagesArray = [message, ...this.#messagesArray];
     this.#updatedEvent.emit();
 
-    const root = await this.#loadRootPage();
-    root.change((root) => {
-      PageDoc.addMessage(root, message.url, message.doc().timestamp);
-    });
+    await this.#insertMessage(message);
   }
 
   #load<T>(url: AutomergeUrl): Promise<DocHandle<T>> {
@@ -119,5 +128,72 @@ export class TreeModel {
 
   #loadRootPage(): Promise<DocHandle<PageDoc>> {
     return this.#load<PageDoc>(this.#rootUrl);
+  }
+
+  async #insertMessage(message: DocHandle<MessageDoc>): Promise<void> {
+    using _guard = await this.#insertMutex.acquire();
+
+    const root = await this.#loadRootPage();
+
+    // Handle root page being empty.
+    if (PageDoc.getEntryCount(root.doc()) === 0) {
+      console.log("insert first child into root");
+      const newPage = this.#repo.create<PageDoc>(PageDoc.make());
+      root.change((root) => {
+        PageDoc.addPage(root, newPage.url, 0, 0);
+      });
+    }
+
+    const lastPageEntry = PageDoc.getEntries(root.doc())
+      .filter(([_, node]) => node.type === "page")
+      .sort(
+        (a, b) => GrowRange.getMax(b[1].range) - GrowRange.getMax(a[1].range)
+      )[0];
+    if (!lastPageEntry) {
+      throw new Error("No last page");
+    }
+
+    // Handle last page being full.
+    const lastPage = await this.#load<PageDoc>(lastPageEntry[0]);
+    if (PageDoc.getEntryCount(lastPage.doc()) >= PAGE_MESSAGE_THRESHOLD) {
+      console.log("last page is full, creating new page");
+      const newPage = this.#repo.create<PageDoc>(PageDoc.make());
+      root.change((root) => {
+        PageDoc.addPage(root, newPage.url, 0, 0);
+      });
+
+      await this.#insertIntoPage([root, newPage], message);
+    } else {
+      console.log("insert into existing page");
+      await this.#insertIntoPage([root, lastPage], message);
+    }
+  }
+
+  /**
+   * @param pagePath Path to the final page to insert into. The root page is the first element.
+   * @param message
+   */
+  async #insertIntoPage(
+    pagePath: DocHandle<PageDoc>[],
+    message: DocHandle<MessageDoc>
+  ): Promise<void> {
+    pagePath[pagePath.length - 1].change((page) => {
+      PageDoc.addMessage(page, message.url, message.doc().timestamp);
+    });
+    let range = PageDoc.getTimestampRange(pagePath[pagePath.length - 1].doc());
+
+    for (let i = pagePath.length - 2; i >= 0; i--) {
+      const page = pagePath[i];
+      page.change((page) => {
+        PageDoc.updateRangeFor(
+          page,
+          pagePath[i + 1].url,
+          Automerge.getActorId(page),
+          range.from,
+          range.to
+        );
+      });
+      range = PageDoc.getTimestampRange(page.doc());
+    }
   }
 }

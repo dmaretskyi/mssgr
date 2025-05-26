@@ -67,6 +67,39 @@ export const PageDoc = Object.freeze({
     nodes: {},
   }),
 
+  getEntries: (page: PageDoc): PageEntry[] => {
+    return Object.entries(page.nodes).map(([url, node]) => [
+      url as AutomergeUrl,
+      node,
+    ]);
+  },
+
+  getEntryCount: (page: PageDoc): number => {
+    return Object.keys(page.nodes).length;
+  },
+
+  getTimestampRange: (page: PageDoc): { from: number; to: number } => {
+    return {
+      from: Math.min(
+        ...Object.values(page.nodes).map((node) => node.range.entires.from)
+      ),
+      to: Math.max(
+        ...Object.values(page.nodes).map((node) => node.range.entires.to)
+      ),
+    };
+  },
+
+  updateRangeFor: (
+    page: PageDoc,
+    url: AutomergeUrl,
+    actorId: ActorId,
+    from: number,
+    to: number
+  ) => {
+    GrowRange.add(page.nodes[url].range, actorId, from);
+    GrowRange.add(page.nodes[url].range, actorId, to);
+  },
+
   addMessage: (page: PageDoc, url: AutomergeUrl, ts: number) => {
     page.nodes[url] = {
       type: "message",
@@ -74,11 +107,11 @@ export const PageDoc = Object.freeze({
     };
   },
 
-  getEntries: (page: PageDoc): PageEntry[] => {
-    return Object.entries(page.nodes).map(([url, node]) => [
-      url as AutomergeUrl,
-      node,
-    ]);
+  addPage: (page: PageDoc, url: AutomergeUrl, from: number, to: number) => {
+    page.nodes[url] = {
+      type: "page",
+      range: GrowRange.make(from, to),
+    };
   },
 });
 
