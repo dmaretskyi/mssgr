@@ -157,7 +157,7 @@ export class TreeModel {
       console.log("insert first child into root");
       const newPage = this.#repo.create<PageDoc>(PageDoc.make());
       root.change((root) => {
-        PageDoc.addPage(root, newPage.url, 0, 0);
+        PageDoc.addPage(root, newPage.url);
       });
     }
 
@@ -176,7 +176,7 @@ export class TreeModel {
       console.log("last page is full, creating new page");
       const newPage = this.#repo.create<PageDoc>(PageDoc.make());
       root.change((root) => {
-        PageDoc.addPage(root, newPage.url, 0, 0);
+        PageDoc.addPage(root, newPage.url);
       });
 
       await this.#insertIntoPage([root, newPage], message);
@@ -212,5 +212,31 @@ export class TreeModel {
       });
       range = PageDoc.getTimestampRange(page.doc());
     }
+  }
+
+  async debug() {
+    const go = async (url: AutomergeUrl): Promise<any> => {
+      const pagePromise = this.#docPromiseCache.get(url);
+      if (!pagePromise) {
+        return null;
+      }
+      const page = (await pagePromise) as DocHandle<PageDoc>;
+      return Object.fromEntries(
+        await Promise.all(PageDoc.getEntries(page.doc()).sort((a, b) => GrowRange.getMin(a[1].range) - GrowRange.getMin(b[1].range)).map(async ([url, node]) => [
+          url,
+          node.type === "page"
+            ? {
+                from: GrowRange.getMin(node.range),
+                to: GrowRange.getMax(node.range),
+                node: await go(url),
+              }
+            : { ts: GrowRange.getMin(node.range) },
+        ])
+      ));
+    };
+
+    return {
+      [this.#rootUrl]: await go(this.#rootUrl),
+    };
   }
 }

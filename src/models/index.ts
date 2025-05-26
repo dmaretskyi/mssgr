@@ -103,14 +103,14 @@ export const PageDoc = Object.freeze({
   addMessage: (page: PageDoc, url: AutomergeUrl, ts: number) => {
     page.nodes[url] = {
       type: "message",
-      range: GrowRange.make(ts, ts),
+      range: GrowRange.makeFrom(ts, ts),
     };
   },
 
-  addPage: (page: PageDoc, url: AutomergeUrl, from: number, to: number) => {
+  addPage: (page: PageDoc, url: AutomergeUrl) => {
     page.nodes[url] = {
       type: "page",
-      range: GrowRange.make(from, to),
+      range: GrowRange.make(),
     };
   },
 });
@@ -132,7 +132,11 @@ export interface GrowRange {
 }
 
 export const GrowRange = Object.freeze({
-  make: (from: number, to: number): GrowRange => ({
+  make: (): GrowRange => ({
+    entires: {},
+  }),
+
+  makeFrom: (from: number, to: number): GrowRange => ({
     entires: {
       from,
       to,

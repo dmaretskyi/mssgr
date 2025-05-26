@@ -88,7 +88,7 @@ export function ChannelView({ channelUrl }: ChannelViewProps) {
     [messageText, postMessage]
   );
 
-  console.log("ChannelView", { messages });
+  console.log("ChannelView", { messages, model });
 
   const ref = useRef<VListHandle>(null);
 
