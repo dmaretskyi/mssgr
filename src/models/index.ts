@@ -11,6 +11,10 @@ export const ProfileDoc = Object.freeze({
     name,
     channels: [],
   }),
+
+  addChannel: (profile: ProfileDoc, channel: AutomergeUrl) => {
+    profile.channels.push(channel);
+  },
 });
 
 export interface ChannelDoc {

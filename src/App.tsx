@@ -1,19 +1,9 @@
-import { useEffect, useState } from "react";
-import reactLogo from "./assets/react.svg";
-import viteLogo from "/vite.svg";
+import { useCallback, useState } from "react";
 
-import {
-  DocHandle,
-  Repo,
-  isValidAutomergeUrl,
-  type AutomergeUrl,
-} from "@automerge/automerge-repo";
+import { Repo, type AutomergeUrl } from "@automerge/automerge-repo";
+import { useDocument } from "@automerge/automerge-repo-react-hooks";
 import { IndexedDBStorageAdapter } from "@automerge/automerge-repo-storage-indexeddb";
-import { ProfileDoc } from "./models";
-import {
-  useDocHandle,
-  useDocument,
-} from "@automerge/automerge-repo-react-hooks";
+import { ChannelDoc, PageDoc, ProfileDoc } from "./models";
 
 const repo = new Repo({
   storage: new IndexedDBStorageAdapter("automerge"),
@@ -21,7 +11,7 @@ const repo = new Repo({
 });
 
 function App() {
-  const [profileDocUrl, setProfileDocUrl] = useState<AutomergeUrl>(() => {
+  const [profileDocUrl] = useState<AutomergeUrl>(() => {
     const profileUrl = localStorage.getItem("profileUrl");
     if (!profileUrl) {
       const docHandle = repo.create<ProfileDoc>(
@@ -32,15 +22,45 @@ function App() {
     }
     return profileUrl as AutomergeUrl;
   });
-  const [profileDoc] = useDocument<ProfileDoc>(profileDocUrl);
+  const [profileDoc, changeProfileDoc] = useDocument<ProfileDoc>(profileDocUrl);
+
+  const createChannel = useCallback(() => {
+    console.log("createChannel");
+
+    const rootPage = repo.create<PageDoc>(PageDoc.make());
+
+    const docHandle = repo.create<ChannelDoc>(
+      ChannelDoc.make({ name: "New Channel", rootPage: rootPage.url })
+    );
+
+    console.log("docHandle", docHandle);
+
+    changeProfileDoc((profileDoc) => {
+      console.log("changeProfileDoc", profileDoc);
+      ProfileDoc.addChannel(profileDoc, docHandle.url);
+    });
+
+    return docHandle.url;
+  }, [profileDoc, changeProfileDoc]);
+
+  const reset = useCallback(() => {
+    localStorage.removeItem("profileUrl");
+    window.location.reload();
+  }, []);
 
   if (!profileDoc) {
     return <div>Loading...</div>;
   }
 
+  console.log(profileDoc);
+
   return (
     <>
-      <h1>{profileDoc.name}</h1>
+      <p className="whitespace-pre font-mono">
+        {JSON.stringify(profileDoc, null, 2)}
+      </p>
+      <button onClick={createChannel}>Create Channel</button>
+      <button onClick={reset}>Reset</button>
     </>
   );
 }
