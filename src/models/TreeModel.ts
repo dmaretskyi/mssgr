@@ -136,14 +136,16 @@ export class TreeModel {
     await this.#insertMessage(message);
   }
 
-  #load<T>(url: AutomergeUrl): Promise<DocHandle<T>> {
-    if (this.#docPromiseCache.has(url)) {
-      return this.#docPromiseCache.get(url) as Promise<DocHandle<T>>;
+  async #load<T>(url: AutomergeUrl): Promise<DocHandle<T>> {
+    let promise = this.#docPromiseCache.get(url);
+    if (!promise) {
+      promise = this.#repo.find(url);
+      this.#docPromiseCache.set(url, promise);
     }
 
-    const promise = this.#repo.find(url);
-    this.#docPromiseCache.set(url, promise);
-    return promise as any;
+    const handle = await promise;
+    await handle.whenReady();
+    return handle as DocHandle<T>;
   }
 
   #loadRootPage(): Promise<DocHandle<PageDoc>> {

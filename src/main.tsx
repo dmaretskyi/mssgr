@@ -6,10 +6,12 @@ import "./index.css";
 import { Repo } from "@automerge/automerge-repo";
 import { RepoContext } from "@automerge/automerge-repo-react-hooks";
 import { IndexedDBStorageAdapter } from "@automerge/automerge-repo-storage-indexeddb";
+import { BrowserWebSocketClientAdapter } from "@automerge/automerge-repo-network-websocket";
 
 const repo = new Repo({
   storage: new IndexedDBStorageAdapter("automerge"),
-  // network: [new BrowserWebSocketClientAdapter("wss://sync.automerge.org")],
+  network: [new BrowserWebSocketClientAdapter("wss://sync.automerge.org")],
+  sharePolicy: async () => true,
 });
 
 createRoot(document.getElementById("root")!).render(

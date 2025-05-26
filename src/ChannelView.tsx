@@ -65,9 +65,6 @@ export function ChannelView({ channelUrl }: ChannelViewProps) {
   const postMessage = useCallback(
     (text: string) => {
       model?.postMessage(text);
-      changeChannelDoc((channelDoc) => {
-        ChannelDoc.incrementMessageCount(channelDoc, 1);
-      });
     },
     [model]
   );
@@ -115,10 +112,7 @@ export function ChannelView({ channelUrl }: ChannelViewProps) {
     <div className="flex flex-col h-screen">
       <div className="panel-component mb-4">
         <h1>{channelDoc?.name}</h1>
-        <p>
-          Message count: {channelDoc?.messageCount.value} loaded:{" "}
-          {model?.messagesCount}
-        </p>
+        <p>Messages loaded: {model?.messagesCount}</p>
         <div className="flex gap-2">
           <button onClick={() => navigator.clipboard.writeText(channelUrl)}>
             Copy channel URL

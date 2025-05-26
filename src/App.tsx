@@ -1,20 +1,14 @@
-import { useCallback, useState } from "react";
+import { Suspense, useCallback, useState } from "react";
 
-import { Repo, type AutomergeUrl } from "@automerge/automerge-repo";
-import { useDocument } from "@automerge/automerge-repo-react-hooks";
-import { IndexedDBStorageAdapter } from "@automerge/automerge-repo-storage-indexeddb";
-import { BrowserWebSocketClientAdapter } from "@automerge/automerge-repo-network-websocket";
-import { ChannelDoc, PageDoc, ProfileDoc } from "./models";
+import { type AutomergeUrl } from "@automerge/automerge-repo";
+import { useDocument, useRepo } from "@automerge/automerge-repo-react-hooks";
 import { ChannelView } from "./ChannelView";
 import { LagDetector } from "./components/LagDetector";
-
-const repo = new Repo({
-  storage: new IndexedDBStorageAdapter("automerge"),
-  network: [new BrowserWebSocketClientAdapter("wss://sync.automerge.org")],
-  sharePolicy: async () => true,
-});
+import { ChannelDoc, PageDoc, ProfileDoc } from "./models";
 
 function App() {
+  const repo = useRepo();
+
   const [profileDocUrl] = useState<AutomergeUrl>(() => {
     const profileUrl = localStorage.getItem("profileUrl");
     if (!profileUrl) {
@@ -97,7 +91,9 @@ function App() {
 
       <div className="w-1/2 panel overflow-y-hidden">
         {profileDoc.channels.length > 0 ? (
-          <ChannelView channelUrl={profileDoc.channels[0]} />
+          <Suspense fallback={<div>Loading...</div>}>
+            <ChannelView channelUrl={profileDoc.channels[0]} />
+          </Suspense>
         ) : (
           <div className="panel-component">
             <p>No channels yet. Create one to get started!</p>
