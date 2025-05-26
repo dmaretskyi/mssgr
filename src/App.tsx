@@ -4,6 +4,7 @@ import { Repo, type AutomergeUrl } from "@automerge/automerge-repo";
 import { useDocument } from "@automerge/automerge-repo-react-hooks";
 import { IndexedDBStorageAdapter } from "@automerge/automerge-repo-storage-indexeddb";
 import { ChannelDoc, PageDoc, ProfileDoc } from "./models";
+import { ChannelView } from "./ChannelView";
 
 const repo = new Repo({
   storage: new IndexedDBStorageAdapter("automerge"),
@@ -55,13 +56,29 @@ function App() {
   console.log(profileDoc);
 
   return (
-    <>
-      <p className="whitespace-pre font-mono">
-        {JSON.stringify(profileDoc, null, 2)}
-      </p>
-      <button onClick={createChannel}>Create Channel</button>
-      <button onClick={reset}>Reset</button>
-    </>
+    <div className="flex h-screen">
+      <div className="w-1/2 panel">
+        <div className="panel-component">
+          <p className="whitespace-pre font-mono">
+            {JSON.stringify(profileDoc, null, 2)}
+          </p>
+          <div className="flex gap-2 mt-4">
+            <button onClick={createChannel}>Create Channel</button>
+            <button onClick={reset}>Reset</button>
+          </div>
+        </div>
+      </div>
+
+      <div className="w-1/2 panel overflow-y-hidden">
+        {profileDoc.channels.length > 0 ? (
+          <ChannelView channelUrl={profileDoc.channels[0]} />
+        ) : (
+          <div className="panel-component">
+            <p>No channels yet. Create one to get started!</p>
+          </div>
+        )}
+      </div>
+    </div>
   );
 }
 

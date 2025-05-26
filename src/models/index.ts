@@ -62,6 +62,14 @@ export const PageDoc = Object.freeze({
   make: (): PageDoc => ({
     nodes: {},
   }),
+
+  addMessage: (page: PageDoc, url: AutomergeUrl, ts: number) => {
+    page.nodes[url] = {
+      type: "message",
+      from: ts,
+      to: ts,
+    };
+  },
 });
 
 export interface MessageDoc {
