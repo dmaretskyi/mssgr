@@ -5,6 +5,7 @@ import { useDocument } from "@automerge/automerge-repo-react-hooks";
 import { IndexedDBStorageAdapter } from "@automerge/automerge-repo-storage-indexeddb";
 import { ChannelDoc, PageDoc, ProfileDoc } from "./models";
 import { ChannelView } from "./ChannelView";
+import { LagDetector } from "./components/LagDetector";
 
 const repo = new Repo({
   storage: new IndexedDBStorageAdapter("automerge"),
@@ -66,6 +67,7 @@ function App() {
             <button onClick={createChannel}>Create Channel</button>
             <button onClick={reset}>Reset</button>
           </div>
+          <LagDetector />
         </div>
       </div>
 

@@ -111,10 +111,16 @@ export function ChannelView({ channelUrl }: ChannelViewProps) {
           {messages.map((handle) => (
             <div
               key={handle.documentId}
-              className="whitespace-pre font-mono mb-4"
+              className="whitespace-pre font-mono mb-4 border-b border-gray-200 pb-4"
             >
               <p className="text-xs">{handle.documentId}</p>
-              {JSON.stringify(handle.doc(), null, 2)}
+              <p>
+                <span className="text-sm">{handle.doc().author}</span>
+                <span className="text-xs">
+                  {new Date(handle.doc().timestamp).toLocaleString()}
+                </span>
+              </p>
+              <p>{handle.doc().message}</p>
             </div>
           ))}
         </VList>
