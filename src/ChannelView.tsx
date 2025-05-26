@@ -1,5 +1,5 @@
 import type { AutomergeUrl, DocHandle } from "@automerge/automerge-repo";
-import { MessageDoc, PageDoc, type ChannelDoc } from "./models";
+import { ChannelDoc, MessageDoc, PageDoc } from "./models";
 import {
   useDocument,
   useDocuments,
@@ -58,6 +58,9 @@ export function ChannelView({ channelUrl }: ChannelViewProps) {
   const postMessage = useCallback(
     (text: string) => {
       model?.postMessage(text);
+      changeChannelDoc((channelDoc) => {
+        ChannelDoc.incrementMessageCount(channelDoc, 1);
+      });
     },
     [model]
   );
@@ -104,7 +107,10 @@ export function ChannelView({ channelUrl }: ChannelViewProps) {
     <div className="flex flex-col h-screen">
       <div className="panel-component mb-4">
         <h1>{channelDoc?.name}</h1>
-        <p>Message count: {model?.messagesCount}</p>
+        <p>
+          Message count: {channelDoc?.messageCount.value} loaded:{" "}
+          {model?.messagesCount}
+        </p>
       </div>
       <div className="flex-1 overflow-y-scroll panel-component mb-4">
         <VList ref={ref} onScroll={handleScroll}>

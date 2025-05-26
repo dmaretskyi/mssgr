@@ -1,4 +1,5 @@
 import type { AutomergeUrl } from "@automerge/automerge-repo";
+import { next as Automerge } from "@automerge/automerge";
 
 export interface ProfileDoc {
   name: string;
@@ -20,6 +21,7 @@ export const ProfileDoc = Object.freeze({
 export interface ChannelDoc {
   name: string;
 
+  messageCount: Automerge.Counter;
   rootPage: AutomergeUrl;
 }
 
@@ -32,8 +34,13 @@ export const ChannelDoc = Object.freeze({
     rootPage: AutomergeUrl;
   }): ChannelDoc => ({
     name,
+    messageCount: new Automerge.Counter(),
     rootPage,
   }),
+
+  incrementMessageCount: (channel: ChannelDoc, by: number) => {
+    channel.messageCount.increment(by);
+  },
 });
 
 export interface PageDoc {
