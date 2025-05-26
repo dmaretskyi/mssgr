@@ -6,6 +6,7 @@ import {
   useRepo,
 } from "@automerge/automerge-repo-react-hooks";
 import {
+  use,
   useCallback,
   useEffect,
   useMemo,
@@ -42,7 +43,9 @@ const STABLE_ARRAY: never[] = [];
 export function ChannelView({ channelUrl }: ChannelViewProps) {
   const repo = useRepo();
 
-  const [channelDoc, changeChannelDoc] = useDocument<ChannelDoc>(channelUrl);
+  const [channelDoc, changeChannelDoc] = useDocument<ChannelDoc>(channelUrl, {
+    suspense: true,
+  });
 
   const model = useMemo(
     () => channelDoc?.rootPage && new TreeModel(repo, channelDoc?.rootPage),
@@ -51,9 +54,13 @@ export function ChannelView({ channelUrl }: ChannelViewProps) {
 
   const messages = useTreeModelMessages(model);
 
-  useEffect(() => {
-    model?.loadMessages(Date.now(), 100);
+  const loadPromise = useMemo(() => {
+    return (async () => {
+      await model?.loadMessages(Date.now(), 30);
+    })();
   }, [model]);
+
+  use(loadPromise);
 
   const postMessage = useCallback(
     (text: string) => {
@@ -99,7 +106,7 @@ export function ChannelView({ channelUrl }: ChannelViewProps) {
       await model.loadMessages(
         model.messages[model.messages.length - 1]?.doc().timestamp ??
           Date.now(),
-        100
+        30
       );
     }
   }, [ref, model]);

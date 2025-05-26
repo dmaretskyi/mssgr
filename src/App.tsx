@@ -26,7 +26,10 @@ function App() {
     }
     return profileUrl as AutomergeUrl;
   });
-  const [profileDoc, changeProfileDoc] = useDocument<ProfileDoc>(profileDocUrl);
+  const [profileDoc, changeProfileDoc] = useDocument<ProfileDoc>(
+    profileDocUrl,
+    { suspense: true }
+  );
 
   const createChannel = useCallback(() => {
     console.log("createChannel");
