@@ -1,54 +1,130 @@
-# React + TypeScript + Vite
+# MSSGER - Decentralized Messenger
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+A decentralized messenger application built with TypeScript, React, and Automerge for peer-to-peer synchronization.
 
-Currently, two official plugins are available:
+## Tech Stack
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Babel](https://babeljs.io/) for Fast Refresh
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/) for Fast Refresh
+- **Frontend**: React + TypeScript
+- **State Management**: Automerge
+- **Package Manager**: pnpm
+- **Build Tool**: Vite
+- **Styling**: TailwindCSS
+- **Testing**: Vitest + React Testing Library
 
-## Expanding the ESLint configuration
+## Data Structure
 
-If you are developing a production application, we recommend updating the configuration to enable type-aware lint rules:
+The application uses Automerge documents (AM docs) to manage different aspects of the data:
 
-```js
-export default tseslint.config({
-  extends: [
-    // Remove ...tseslint.configs.recommended and replace with this
-    ...tseslint.configs.recommendedTypeChecked,
-    // Alternatively, use this for stricter rules
-    ...tseslint.configs.strictTypeChecked,
-    // Optionally, add this for stylistic rules
-    ...tseslint.configs.stylisticTypeChecked,
-  ],
-  languageOptions: {
-    // other options...
-    parserOptions: {
-      project: ['./tsconfig.node.json', './tsconfig.app.json'],
-      tsconfigRootDir: import.meta.dirname,
-    },
-  },
-})
+```mermaid
+graph TD
+    subgraph "User Profile"
+        P[Profile Doc]
+        P --> |stores| PN[Profile Name]
+        P --> |stores| PA[Avatar URL]
+        P --> |stores| PC[Channel List]
+    end
+
+    subgraph "Channel"
+        C[Channel Doc]
+        C --> |stores| CN[Channel Name]
+        C --> |stores| CR[Root Page URL]
+    end
+
+    subgraph "Page Structure"
+        R[Root Page]
+        R --> |contains| SP1[Subpage 1]
+        R --> |contains| SP2[Subpage 2]
+        SP1 --> |contains| M1[Message 1]
+        SP1 --> |contains| M2[Message 2]
+        SP2 --> |contains| M3[Message 3]
+    end
+
+    subgraph "Message"
+        M[Message Doc]
+        M --> |stores| MS[Sender ID]
+        M --> |stores| MN[Sender Name]
+        M --> |stores| MC[Content]
+        M --> |stores| MT[Timestamp]
+        M --> |stores| MID[Channel ID]
+    end
 ```
 
-You can also install [eslint-plugin-react-x](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-x) and [eslint-plugin-react-dom](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-dom) for React-specific lint rules:
+## Project Architecture
 
-```js
-// eslint.config.js
-import reactX from 'eslint-plugin-react-x'
-import reactDom from 'eslint-plugin-react-dom'
+### Core Components
 
-export default tseslint.config({
-  plugins: {
-    // Add the react-x and react-dom plugins
-    'react-x': reactX,
-    'react-dom': reactDom,
-  },
-  rules: {
-    // other rules...
-    // Enable its recommended typescript rules
-    ...reactX.configs['recommended-typescript'].rules,
-    ...reactDom.configs.recommended.rules,
-  },
-})
+1. **Data Layer**
+
+   - Automerge document management
+   - CRDT synchronization
+   - Local storage integration
+   - Peer-to-peer networking
+
+2. **Domain Layer**
+
+   - Data models and types
+   - Business logic
+   - State management
+   - Event handling
+
+3. **UI Layer**
+   - React components
+   - User interactions
+   - Routing
+   - Styling
+
+## File Structure
+
 ```
+src/
+├── data/                 # Data layer
+│   ├── automerge/       # Automerge document management
+│   ├── storage/         # Local storage handling
+│   └── sync/           # Synchronization logic
+│
+├── domain/              # Domain layer
+│   ├── models/         # Data models and types
+│   ├── services/       # Business logic
+│   └── events/         # Event handling
+│
+├── ui/                  # UI layer
+│   ├── components/     # React components
+│   ├── pages/         # Page components
+│   ├── hooks/         # Custom React hooks
+│   └── styles/        # Styling
+│
+├── utils/              # Utility functions
+├── config/             # Configuration files
+└── types/              # TypeScript type definitions
+```
+
+## Getting Started
+
+1. Install dependencies:
+
+   ```bash
+   pnpm install
+   ```
+
+2. Start development server:
+
+   ```bash
+   pnpm dev
+   ```
+
+3. Build for production:
+   ```bash
+   pnpm build
+   ```
+
+## Development
+
+- `pnpm dev` - Start development server
+- `pnpm build` - Build for production
+- `pnpm test` - Run tests
+- `pnpm lint` - Run linter
+- `pnpm type-check` - Run type checking
+
+## License
+
+MIT
