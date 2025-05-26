@@ -112,6 +112,11 @@ export function ChannelView({ channelUrl }: ChannelViewProps) {
           Message count: {channelDoc?.messageCount.value} loaded:{" "}
           {model?.messagesCount}
         </p>
+        <div className="flex gap-2">
+          <button onClick={() => navigator.clipboard.writeText(channelUrl)}>
+            Copy channel URL
+          </button>
+        </div>
       </div>
       <div className="flex-1 overflow-y-scroll panel-component mb-4">
         <VList ref={ref} onScroll={handleScroll}>

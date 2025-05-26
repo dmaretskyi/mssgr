@@ -17,6 +17,9 @@ importers:
       '@automerge/automerge-repo':
         specifier: 2.0.0
         version: 2.0.0
+      '@automerge/automerge-repo-network-websocket':
+        specifier: ^2.0.0
+        version: 2.0.0
       '@automerge/automerge-repo-react-hooks':
         specifier: ^2.0.0
         version: 2.0.0(react-dom@19.1.0(react@19.1.0))(react@19.1.0)
@@ -84,6 +87,9 @@ packages:
   '@ampproject/remapping@2.3.0':
     resolution: {integrity: sha512-30iZtAPgz+LTIYoeivqYo853f02jBYSd5uGnGpkFV0M3xOt9aN73erkgYAmZU43x4VfqcnLxW9Kpg3R5LC4YYw==}
     engines: {node: '>=6.0.0'}
+
+  '@automerge/automerge-repo-network-websocket@2.0.0':
+    resolution: {integrity: sha512-Hd1FMMxezhlywzika5dgBsNN0ETZ4xjxVSCHuX2yI3vtdmDCOICBHKiY/t2ymnDPw+TKyBm0jXMQai2UVuSIMQ==}
 
   '@automerge/automerge-repo-react-hooks@2.0.0':
     resolution: {integrity: sha512-odvA/Mn4iLDSaiQj7cbDUYEWvqtK6l9hTEYUSGW809xoF/Cc7NdcN2TFjUZcpr5Mp/Oqsv/dXcwZlvI3cy7upg==}
@@ -1116,6 +1122,11 @@ packages:
   isexe@2.0.0:
     resolution: {integrity: sha512-RHxMLp9lnKHGHRng9QFhRCMbYAcVpn69smSGcq3f36xjgVVWThj4qqLbTLlq7Ssj8B+fIQ1EuCEGI2lKsyQeIw==}
 
+  isomorphic-ws@5.0.0:
+    resolution: {integrity: sha512-muId7Zzn9ywDsyXgTIafTry2sV3nySZeUDe6YedVd1Hvuuep5AsIlqK+XefWpYTyJG5e503F2xIuT2lcU6rCSw==}
+    peerDependencies:
+      ws: '*'
+
   jiti@2.4.2:
     resolution: {integrity: sha512-rg9zJN+G4n2nfJl5MW3BMygZX56zKPNVEYYqq7adpmMh4Jn2QNEwhvQlFy6jPVdcod7txZtKHWnyZiA3a0zP7A==}
     hasBin: true
@@ -1551,6 +1562,18 @@ packages:
     resolution: {integrity: sha512-BN22B5eaMMI9UMtjrGd5g5eCYPpCPDUy0FJXbYsaT5zYxjFOckS53SQDE3pWkVoWpHXVb3BrYcEN4Twa55B5cA==}
     engines: {node: '>=0.10.0'}
 
+  ws@8.18.2:
+    resolution: {integrity: sha512-DMricUmwGZUVr++AEAe2uiVM7UoO9MAVZMDu05UQOaUII0lp+zOzLLU4Xqh/JvTqklB1T4uELaaPBKyjE1r4fQ==}
+    engines: {node: '>=10.0.0'}
+    peerDependencies:
+      bufferutil: ^4.0.1
+      utf-8-validate: '>=5.0.2'
+    peerDependenciesMeta:
+      bufferutil:
+        optional: true
+      utf-8-validate:
+        optional: true
+
   xstate@5.19.3:
     resolution: {integrity: sha512-q6sqD7LuontFVxQoGB7D6NkQRDLzs87qzQhUKvI0osKKK8xxktZBT7uwfisjh7Yi5VB2cN9NOpCSxJNpUPQCeg==}
 
@@ -1577,6 +1600,19 @@ snapshots:
     dependencies:
       '@jridgewell/gen-mapping': 0.3.8
       '@jridgewell/trace-mapping': 0.3.25
+
+  '@automerge/automerge-repo-network-websocket@2.0.0':
+    dependencies:
+      '@automerge/automerge-repo': 2.0.0
+      cbor-x: 1.6.0
+      debug: 4.4.1
+      eventemitter3: 5.0.1
+      isomorphic-ws: 5.0.0(ws@8.18.2)
+      ws: 8.18.2
+    transitivePeerDependencies:
+      - bufferutil
+      - supports-color
+      - utf-8-validate
 
   '@automerge/automerge-repo-react-hooks@2.0.0(react-dom@19.1.0(react@19.1.0))(react@19.1.0)':
     dependencies:
@@ -2560,6 +2596,10 @@ snapshots:
 
   isexe@2.0.0: {}
 
+  isomorphic-ws@5.0.0(ws@8.18.2):
+    dependencies:
+      ws: 8.18.2
+
   jiti@2.4.2: {}
 
   js-yaml@4.1.0:
@@ -2929,6 +2969,8 @@ snapshots:
       isexe: 2.0.0
 
   word-wrap@1.2.5: {}
+
+  ws@8.18.2: {}
 
   xstate@5.19.3: {}
 
