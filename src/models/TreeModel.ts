@@ -4,7 +4,7 @@ import type {
   DocumentId,
   Repo,
 } from "@automerge/automerge-repo";
-import { GrowRange, MessageDoc, PageDoc } from ".";
+import { GrowRange, MessageDoc, PageDoc, type PageEntry } from ".";
 import { Event, type ReadOnlyEvent } from "@dxos/async";
 
 export class TreeModel {
@@ -40,17 +40,35 @@ export class TreeModel {
   }
 
   /**
-   * @param startTs The timestamp of the first message to load.
+   * @param startTs The timestamp of the oldest message to load.
    * @param count The number of messages to load. The oldest message will be at the timestamp.
    */
   async loadMessages(timestamp: number, count: number): Promise<void> {
     console.log("loadMessages", { timestamp, count });
-    const root = await this.#loadRootPage();
-    const messages = Object.entries(root.doc().nodes ?? {})
-      .filter(
-        ([_, node]) =>
-          node.type === "message" && GrowRange.getMax(node.range) <= timestamp
-      )
+
+    const entries: PageEntry[] = [];
+
+    const loadPage = async (url: AutomergeUrl) => {
+      const page = await this.#load<PageDoc>(url);
+      await Promise.all(
+        PageDoc.getEntries(page.doc()).map(async ([url, node]) => {
+          if (GrowRange.getMax(node.range) >= timestamp) {
+            return;
+          }
+
+          // TODO(dmaretskyi): Trim on message count.
+          if (node.type === "message") {
+            entries.push([url as AutomergeUrl, node]);
+          } else if (node.type === "page") {
+            await loadPage(url);
+          }
+        })
+      );
+    };
+
+    await loadPage(this.#rootUrl);
+
+    const messages = entries
       .sort(
         (a, b) => GrowRange.getMax(b[1].range) - GrowRange.getMax(a[1].range)
       )

@@ -73,7 +73,16 @@ export const PageDoc = Object.freeze({
       range: GrowRange.make(ts, ts),
     };
   },
+
+  getEntries: (page: PageDoc): PageEntry[] => {
+    return Object.entries(page.nodes).map(([url, node]) => [
+      url as AutomergeUrl,
+      node,
+    ]);
+  },
 });
+
+export type PageEntry = readonly [AutomergeUrl, PageDoc["nodes"][AutomergeUrl]];
 
 /**
  * A register that tracks the min and max values of a set of numbers.
