@@ -9,10 +9,11 @@ import {
   useCallback,
   useEffect,
   useMemo,
+  useRef,
   useState,
   useSyncExternalStore,
 } from "react";
-import { VList } from "virtua";
+import { VList, type VListHandle } from "virtua";
 import { TreeModel } from "./models/TreeModel";
 
 export interface ChannelViewProps {
@@ -86,6 +87,19 @@ export function ChannelView({ channelUrl }: ChannelViewProps) {
 
   console.log("ChannelView", { messages });
 
+  const ref = useRef<VListHandle>(null);
+
+  const handleScroll = useCallback(async () => {
+    if (!ref.current || !model) return;
+    if (ref.current.findEndIndex() + 50 > model.messagesCount) {
+      await model.loadMessages(
+        model.messages[model.messages.length - 1]?.doc().timestamp ??
+          Date.now(),
+        100
+      );
+    }
+  }, [ref, model]);
+
   return (
     <div className="flex flex-col h-screen">
       <div className="panel-component mb-4">
@@ -93,7 +107,7 @@ export function ChannelView({ channelUrl }: ChannelViewProps) {
         <p>Message count: {model?.messagesCount}</p>
       </div>
       <div className="flex-1 overflow-y-scroll panel-component mb-4">
-        <VList>
+        <VList ref={ref} onScroll={handleScroll}>
           {messages.map((handle) => (
             <div
               key={handle.documentId}
