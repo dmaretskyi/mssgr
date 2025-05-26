@@ -1,46 +1,64 @@
-import type { AutomergeUrl } from "@automerge/automerge-repo";
+import type { AutomergeUrl, DocHandle } from "@automerge/automerge-repo";
 import { MessageDoc, PageDoc, type ChannelDoc } from "./models";
 import {
   useDocument,
   useDocuments,
   useRepo,
 } from "@automerge/automerge-repo-react-hooks";
-import { useCallback, useMemo, useState } from "react";
+import {
+  useCallback,
+  useEffect,
+  useMemo,
+  useState,
+  useSyncExternalStore,
+} from "react";
 import { VList } from "virtua";
+import { TreeModel } from "./models/TreeModel";
 
 export interface ChannelViewProps {
   channelUrl: AutomergeUrl;
 }
 
+const useTreeModelMessages = (
+  model: TreeModel | undefined
+): readonly DocHandle<MessageDoc>[] => {
+  const { subscribe, getSnapshot } = useMemo(
+    () => ({
+      subscribe: (callback: () => void) => {
+        model?.updatedEvent.on(callback);
+        return () => model?.updatedEvent.off(callback);
+      },
+      getSnapshot: () => model?.messages ?? STABLE_ARRAY,
+    }),
+    [model]
+  );
+
+  return useSyncExternalStore(subscribe, getSnapshot);
+};
+
+const STABLE_ARRAY: never[] = [];
+
 export function ChannelView({ channelUrl }: ChannelViewProps) {
   const repo = useRepo();
+
   const [channelDoc, changeChannelDoc] = useDocument<ChannelDoc>(channelUrl);
 
-  const [rootPageDoc, changeRootPageDoc] = useDocument<PageDoc>(
-    channelDoc?.rootPage
+  const model = useMemo(
+    () => channelDoc?.rootPage && new TreeModel(repo, channelDoc?.rootPage),
+    [repo, channelDoc?.rootPage]
   );
 
-  const messageUrls = useMemo(
-    () => Object.keys(rootPageDoc?.nodes ?? {}) as AutomergeUrl[],
-    [rootPageDoc]
-  );
-  const [messageDocs] = useDocuments<MessageDoc>(messageUrls);
+  const messages = useTreeModelMessages(model);
+
+  useEffect(() => {
+    model?.loadMessages(Date.now(), 100);
+  }, [model]);
 
   const postMessage = useCallback(
     (text: string) => {
-      const message = repo.create<MessageDoc>(
-        MessageDoc.make({
-          author: "Anonymous",
-          timestamp: Date.now(),
-          message: text,
-        })
-      );
-
-      changeRootPageDoc((rootPageDoc) => {
-        PageDoc.addMessage(rootPageDoc, message.url, message.doc().timestamp);
-      });
+      model?.postMessage(text);
     },
-    [changeRootPageDoc, repo]
+    [model]
   );
 
   const [messageText, setMessageText] = useState("");
@@ -66,18 +84,23 @@ export function ChannelView({ channelUrl }: ChannelViewProps) {
     [messageText, postMessage]
   );
 
+  console.log("ChannelView", { messages });
+
   return (
     <div className="flex flex-col h-screen">
       <div className="panel-component mb-4">
         <h1>{channelDoc?.name}</h1>
-        <p>Message count: {messageDocs.size}</p>
+        <p>Message count: {model?.messagesCount}</p>
       </div>
       <div className="flex-1 overflow-y-scroll panel-component mb-4">
         <VList>
-          {Array.from(messageDocs.entries()).map(([messageUrl, messageDoc]) => (
-            <div key={messageUrl} className="whitespace-pre font-mono mb-4">
-              <p className="text-xs">{messageUrl}</p>
-              {JSON.stringify(messageDoc, null, 2)}
+          {messages.map((handle) => (
+            <div
+              key={handle.documentId}
+              className="whitespace-pre font-mono mb-4"
+            >
+              <p className="text-xs">{handle.documentId}</p>
+              {JSON.stringify(handle.doc(), null, 2)}
             </div>
           ))}
         </VList>
