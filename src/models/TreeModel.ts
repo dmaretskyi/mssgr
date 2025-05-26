@@ -45,15 +45,24 @@ export class TreeModel {
   }
 
   /**
-   * @param startTs The timestamp of the oldest message to load.
-   * @param count The number of messages to load. The oldest message will be at the timestamp.
+   * @param startTs The timestamp of the newest message to load.
+   * @param count The number of m essages to load. The newest message will be at the timestamp.
    */
   async loadMessages(timestamp: number, count: number): Promise<void> {
     console.log("loadMessages", { timestamp, count });
 
     const entries: PageEntry[] = [];
 
+    const loadMutex = new Mutex();
+
     const loadPage = async (url: AutomergeUrl) => {
+      using guard = await loadMutex.acquire();
+
+      if (entries.length >= count) {
+        console.log('skip because number is satisfied', url)
+        return;
+      }
+
       console.log("loadPage", url);
       const page = await this.#load<PageDoc>(url);
       console.log(
@@ -62,9 +71,17 @@ export class TreeModel {
         PageDoc.getEntryCount(page.doc()),
         "entries"
       );
+
+      guard.release();
+
+      if (entries.length >= count) {
+        console.log("skip because number is satisfied", url);
+        return;
+      }
+
       await Promise.all(
         PageDoc.getEntries(page.doc()).map(async ([url, node]) => {
-          if (GrowRange.getMax(node.range) >= timestamp) {
+          if (GrowRange.getMin(node.range) >= timestamp) {
             return;
           }
 
