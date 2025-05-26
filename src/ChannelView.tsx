@@ -48,8 +48,8 @@ export function ChannelView({ channelUrl }: ChannelViewProps) {
   });
 
   const model = useMemo(
-    () => channelDoc?.rootPage && new TreeModel(repo, channelDoc?.rootPage),
-    [repo, channelDoc?.rootPage]
+    () => new TreeModel(repo, channelDoc?.rootPage),
+    [repo, channelDoc.rootPage]
   );
 
   const messages = useTreeModelMessages(model);
