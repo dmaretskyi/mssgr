@@ -1,32 +1,46 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import reactLogo from "./assets/react.svg";
 import viteLogo from "/vite.svg";
 
+import {
+  DocHandle,
+  Repo,
+  isValidAutomergeUrl,
+  type AutomergeUrl,
+} from "@automerge/automerge-repo";
+import { IndexedDBStorageAdapter } from "@automerge/automerge-repo-storage-indexeddb";
+import { ProfileDoc } from "./models";
+import {
+  useDocHandle,
+  useDocument,
+} from "@automerge/automerge-repo-react-hooks";
+
+const repo = new Repo({
+  storage: new IndexedDBStorageAdapter("automerge"),
+  // network: [new BrowserWebSocketClientAdapter("wss://sync.automerge.org")],
+});
+
 function App() {
-  const [count, setCount] = useState(0);
+  const [profileDocUrl, setProfileDocUrl] = useState<AutomergeUrl>(() => {
+    const profileUrl = localStorage.getItem("profileUrl");
+    if (!profileUrl) {
+      const docHandle = repo.create<ProfileDoc>(
+        ProfileDoc.make({ name: "John Doe" })
+      );
+      localStorage.setItem("profileUrl", docHandle.url);
+      return docHandle.url;
+    }
+    return profileUrl as AutomergeUrl;
+  });
+  const [profileDoc] = useDocument<ProfileDoc>(profileDocUrl);
+
+  if (!profileDoc) {
+    return <div>Loading...</div>;
+  }
 
   return (
     <>
-      <div className="bg-red">
-        <a href="https://vite.dev" target="_blank">
-          <img src={viteLogo} className="logo" alt="Vite logo" />
-        </a>
-        <a href="https://react.dev" target="_blank">
-          <img src={reactLogo} className="logo react" alt="React logo" />
-        </a>
-      </div>
-      <h1>Vite + React</h1>
-      <div className="card">
-        <button onClick={() => setCount((count) => count + 1)}>
-          count is {count}
-        </button>
-        <p>
-          Edit <code>src/App.tsx</code> and save to test HMR
-        </p>
-      </div>
-      <p className="read-the-docs">
-        Click on the Vite and React logos to learn more
-      </p>
+      <h1>{profileDoc.name}</h1>
     </>
   );
 }
