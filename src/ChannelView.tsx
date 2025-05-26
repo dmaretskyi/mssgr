@@ -6,6 +6,7 @@ import {
   useRepo,
 } from "@automerge/automerge-repo-react-hooks";
 import { useCallback, useMemo, useState } from "react";
+import { VList } from "virtua";
 
 export interface ChannelViewProps {
   channelUrl: AutomergeUrl;
@@ -72,12 +73,14 @@ export function ChannelView({ channelUrl }: ChannelViewProps) {
         <p>Message count: {messageDocs.size}</p>
       </div>
       <div className="flex-1 overflow-y-scroll panel-component mb-4">
-        {Array.from(messageDocs.entries()).map(([messageUrl, messageDoc]) => (
-          <div key={messageUrl} className="whitespace-pre font-mono mb-4">
-            <p className="text-xs">{messageUrl}</p>
-            {JSON.stringify(messageDoc, null, 2)}
-          </div>
-        ))}
+        <VList>
+          {Array.from(messageDocs.entries()).map(([messageUrl, messageDoc]) => (
+            <div key={messageUrl} className="whitespace-pre font-mono mb-4">
+              <p className="text-xs">{messageUrl}</p>
+              {JSON.stringify(messageDoc, null, 2)}
+            </div>
+          ))}
+        </VList>
       </div>
       <div className="panel-component sticky bottom-0">
         <div className="flex gap-2">

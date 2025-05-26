@@ -16,6 +16,7 @@
     "@automerge/automerge-repo-storage-indexeddb": "^2.0.0",
     "react": "^19.1.0",
     "react-dom": "^19.1.0",
+    "virtua": "^0.41.2",
     "vite-plugin-wasm": "^3.4.1"
   },
   "devDependencies": {
